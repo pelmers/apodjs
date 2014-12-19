@@ -1,0 +1,19 @@
+{
+  "name": "apodjs",
+  "version": "1.0.0",
+  "description": "Find and download astronomy pictures of the day",
+  "main": "apod.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pelmers/apodjs.git"
+  },
+  "author": "Peter Elmers",
+  "license": "None",
+  "bugs": {
+    "url": "https://github.com/pelmers/apodjs/issues"
+  },
+  "homepage": "https://github.com/pelmers/apodjs"
+}

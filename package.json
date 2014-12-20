@@ -1,8 +1,11 @@
 {
   "name": "apodjs",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Find and download astronomy pictures of the day",
   "main": "apod.js",
+  "bin": {
+      "apodjs": "./apod.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

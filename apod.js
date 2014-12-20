@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Format a date to the form YYMMDD
  */

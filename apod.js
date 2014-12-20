@@ -49,7 +49,7 @@ function parseDate(dateStr) {
         givenYear = parseInt(dateStr.slice(0,2)),
         givenMonth = parseInt(dateStr.slice(2,4))-1,
         givenDay = parseInt(dateStr.slice(4,6));
-    if (givenYear < curYear)
+    if (givenYear <= curYear)
         givenYear = 2000 + givenYear;
     else
         givenYear = 1900 + givenYear;
@@ -67,9 +67,10 @@ function pickRandomPicture(date, printDesc, callback) {
     // then making a date out of a uniformly random time in between
     var past = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
         now = new Date(),
-        current = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()),
-        randTime = (current - past)*random() + past,
-        randDate = new Date(~~randTime);
+        current = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(),
+                now.getHours()),
+        randTime = (current - past)*Math.random() + past,
+        randDate = new Date(parseInt(randTime));
     return getDatePicture(randDate, printDesc, callback);
 }
 
@@ -105,22 +106,21 @@ function downloadURL(url, folder) {
         filename = "APODdownload";
     var fullpath = path.join(folder, filename);
     request(url).pipe(fs.createWriteStream(fullpath));
-    return path;
+    return fullpath;
 }
 
 function main() {
     "use strict";
-    var date = parseDate(args.date),
-        pictureURL = null;
+    var date = parseDate(args.date);
 
     // if we download the picture, print where we download it
     // otherwise print the url to the picture instead
     function handleURL(url) {
         if (args.download) {
             if (url !== null)
-                console.log(downloadURL(pictureURL, args.download));
+                console.log(downloadURL(url, args.download));
             else
-                console.log("Could not find picture. Check your internet or the date given.")
+                console.log("Could not find picture. Check your internet or the date.")
         } else {
             console.log(url);
         }
@@ -128,15 +128,17 @@ function main() {
 
     if (args.type === 'random') {
         // try a few times in case we pick a bad date sometimes
-        var numTries = 5;
-        var repeater = function(url) {
-            numTries--;
-            if (url || numTries == 0)
-                handleURL(url);
-            // keep trying
-            pickRandomPicture(date, args.description, repeater);
-        };
-        pickRandomPicture(date, args.description, repeater);
+        var numTries = 5,
+            repeater = function(url) {
+                numTries--;
+                if (url || numTries == 0) {
+                    handleURL(url);
+                    return;
+                }
+                // keep trying
+                pickRandomPicture(date, args.description, repeater);
+            };
+        repeater(null);
     }
     else {
         getDatePicture(date, args.description, handleURL);

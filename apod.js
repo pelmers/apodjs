@@ -48,6 +48,14 @@ var request = require('request'),
     URLtemplate = "http://apod.nasa.gov/apod/ap{{DATE}}.html";
 
 /**
+ * Log message to console if verbose is true.
+ */
+function verboseMessage(message) {
+    if (args.verbose)
+        console.log(message);
+}
+
+/**
  * Parse YYMMDD as a JavaScript date
  */
 function parseDate(dateStr) {
@@ -71,14 +79,11 @@ function parseDate(dateStr) {
 function pickRandomPicture(date, printDesc, callback) {
     // pick a random date by getting current epoch time and start epoch time
     // then making a date out of a uniformly random time in between
-    var past = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
-        now = new Date(),
-        current = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(),
-                now.getHours()),
+    var past = date.getTime(),
+        current = (new Date()).getTime(),
         randTime = (current - past)*Math.random() + past,
         randDate = new Date(parseInt(randTime));
-    if (args.verbose)
-        console.log("Picked random date: " + randDate.toDateString());
+    verboseMessage("Picked random date: " + randDate.toDateString());
     return getDatePicture(randDate, printDesc, callback);
 }
 
@@ -105,32 +110,46 @@ function getDatePicture(date, printDesc, callback) {
 /**
  * Download the contents of URL and save to current working directory.
  * Return string representing path of the saved image.
+ * Call callback(path) once the file is downloaded.
  */
-function downloadURL(url, folder) {
+function downloadURL(url, folder, callback) {
     var filename = /[^\/]*$/.exec(url);
     if (filename !== null)
         filename = filename[0];
     else
         filename = "APODdownload";
-    if (args.verbose)
-        console.log("Found picture filename: " + filename);
+    verboseMessage("Found picture filename: " + filename);
     var fullpath = path.join(folder, filename);
-    request(url).pipe(fs.createWriteStream(fullpath));
-    return fullpath;
+    fs.exists(fullpath, function(exists) {
+        if (!exists) {
+            verboseMessage("Downloading " + url + " to " + fullpath + "...");
+            request(url).on('response', function(response) {
+                var writer = fs.createWriteStream(fullpath);
+                response.pipe(writer, { end: false });
+                response.on('end', function() {
+                    writer.end();
+                    callback(fullpath);
+                });
+            });
+            request(url).pipe(fs.createWriteStream(fullpath));
+        } else {
+            verboseMessage(fullpath + " exists, skipping download...");
+            callback(fullpath);
+        }
+    });
 }
 
 function main() {
     "use strict";
     var date = parseDate(args.date);
-    if (args.verbose)
-        console.log("Current date is " + date.toDateString());
+    verboseMessage("Current date is " + date.toDateString());
 
     // if we download the picture, print where we download it
     // otherwise print the url to the picture instead
     function handleURL(url) {
         if (args.download) {
             if (url !== null)
-                console.log(downloadURL(url, args.download));
+                downloadURL(url, args.download, console.log);
             else
                 console.log("Could not find picture. Check your internet or the date.")
         } else {

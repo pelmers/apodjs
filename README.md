@@ -8,7 +8,7 @@ Install: `npm install -g apodjs`
 Set your wallpaper to today's picture on boot, using Nitrogen with Openbox:
 `~/.config/openbox/autostart`
 ```
-apodjs --download | xargs nitrogen --set-zoom-fill &
+apodjs --download=$HOME/Desktop/ | xargs nitrogen --set-zoom-fill &
 ```
 
 #### Usage

@@ -1,6 +1,6 @@
 {
   "name": "apodjs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Find and download astronomy pictures of the day",
   "main": "apod.js",
   "scripts": {

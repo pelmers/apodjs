@@ -34,6 +34,10 @@ var request = require('request'),
         '--description': {
             'validOptions': [],
             'description': "Print the picture explanation."
+        },
+        '--verbose': {
+            'validOptions': [],
+            'description': "Print extra information during execution."
         }
     }, {
         description: ["apodjs is a tool to find and download NASA's astronomy picture of the day.",
@@ -71,6 +75,8 @@ function pickRandomPicture(date, printDesc, callback) {
                 now.getHours()),
         randTime = (current - past)*Math.random() + past,
         randDate = new Date(parseInt(randTime));
+    if (args.verbose)
+        console.log("Picked random date: " + randDate.toDateString());
     return getDatePicture(randDate, printDesc, callback);
 }
 
@@ -104,6 +110,8 @@ function downloadURL(url, folder) {
         filename = filename[0];
     else
         filename = "APODdownload";
+    if (args.verbose)
+        console.log("Found picture filename: " + filename);
     var fullpath = path.join(folder, filename);
     request(url).pipe(fs.createWriteStream(fullpath));
     return fullpath;
@@ -112,6 +120,8 @@ function downloadURL(url, folder) {
 function main() {
     "use strict";
     var date = parseDate(args.date);
+    if (args.verbose)
+        console.log("Current date is " + date.toDateString());
 
     // if we download the picture, print where we download it
     // otherwise print the url to the picture instead
@@ -130,13 +140,13 @@ function main() {
         // try a few times in case we pick a bad date sometimes
         var numTries = 5,
             repeater = function(url) {
-                numTries--;
                 if (url || numTries == 0) {
                     handleURL(url);
                     return;
                 }
                 // keep trying
                 pickRandomPicture(date, args.description, repeater);
+                numTries--;
             };
         repeater(null);
     }
